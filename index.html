@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Barcode Label Generator</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Barcode Label Generator</h1>
+            <p class="header-description">Upload product data and generate barcode labels for WSN/WID lookups</p>
+        </header>
+
+        <main>
+            <!-- Data Management Section -->
+            <section class="card section">
+                <div class="card__header">
+                    <h2>Data Management</h2>
+                    <p class="text-secondary">Upload Excel/CSV files to add product data</p>
+                </div>
+                <div class="card__body">
+                    <!-- File Upload -->
+                    <div class="upload-container" id="uploadContainer">
+                        <div class="upload-area" id="uploadArea">
+                            <div class="upload-content">
+                                <svg class="upload-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                <h3>Drop files here or click to browse</h3>
+                                <p>Upload Excel (.xlsx) or CSV files</p>
+                            </div>
+                            <input type="file" id="fileInput" accept=".xlsx,.csv" multiple>
+                        </div>
+                    </div>
+
+                    <!-- Upload Status -->
+                    <div id="uploadStatus" class="upload-status hidden"></div>
+
+                    <!-- Data Summary -->
+                    <div class="data-summary">
+                        <div class="summary-item">
+                            <span class="summary-label">Total Records:</span>
+                            <span id="totalRecords" class="summary-value">2</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Last Updated:</span>
+                            <span id="lastUpdated" class="summary-value">Sample data loaded</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Data Table Section -->
+            <section class="card section">
+                <div class="card__header">
+                    <h2>Product Data</h2>
+                    <div class="table-controls">
+                        <input type="text" id="tableSearch" class="form-control search-input" placeholder="Search products...">
+                    </div>
+                </div>
+                <div class="card__body">
+                    <div class="table-container">
+                        <table id="dataTable" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>WSN</th>
+                                    <th>WID</th>
+                                    <th>FSN</th>
+                                    <th>Product Title</th>
+                                    <th>MRP</th>
+                                    <th>FSP</th>
+                                    <th>Vertical</th>
+                                    <th>Brand</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <!-- Table data will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Label Generation Section -->
+            <section class="card section">
+                <div class="card__header">
+                    <h2>Label Generation</h2>
+                    <p class="text-secondary">Enter WSN or WID to generate barcode label</p>
+                </div>
+                <div class="card__body">
+                    <div class="label-controls">
+                        <div class="form-group">
+                            <label for="searchInput" class="form-label">WSN or WID</label>
+                            <div class="input-group">
+                                <input type="text" id="searchInput" class="form-control" placeholder="Enter WSN or WID">
+                                <button type="button" id="searchBtn" class="btn btn--primary">Search</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Product Info Display -->
+                    <div id="productInfo" class="product-info hidden">
+                        <div class="product-details">
+                            <h3 id="productTitle"></h3>
+                            <div class="product-meta">
+                                <span class="meta-item">
+                                    <strong>FSN:</strong> <span id="productFSN"></span>
+                                </span>
+                                <span class="meta-item">
+                                    <strong>Brand:</strong> <span id="productBrand"></span>
+                                </span>
+                            </div>
+                            <div class="product-prices">
+                                <span class="price-item">
+                                    <strong>MRP:</strong> ₹<span id="productMRP"></span>
+                                </span>
+                                <span class="price-item">
+                                    <strong>FSP:</strong> ₹<span id="productFSP"></span>
+                                </span>
+                                <span class="price-item">
+                                    <strong>Category:</strong> <span id="productVertical"></span>
+                                </span>
+                            </div>
+                        </div>
+                        <button type="button" id="generateLabelBtn" class="btn btn--primary btn--lg">Generate Label</button>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div id="errorMessage" class="error-message hidden">
+                        <svg class="error-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
+                        <span id="errorText">Product not found</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Label Preview Section -->
+            <section id="labelSection" class="card section hidden">
+                <div class="card__header">
+                    <h2>Generated Label</h2>
+                    <div class="label-actions">
+                        <button type="button" id="downloadBtn" class="btn btn--outline">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Download PNG
+                        </button>
+                        <button type="button" id="printBtn" class="btn btn--primary">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                                <rect x="6" y="14" width="12" height="8"></rect>
+                            </svg>
+                            Print Label
+                        </button>
+                    </div>
+                </div>
+                <div class="card__body">
+                    <div class="label-preview">
+                        <canvas id="labelCanvas" width="590" height="354"></canvas>
+                    </div>
+                    <div class="label-info">
+                        <p><strong>Label Dimensions:</strong> 5cm × 3cm (590 × 354 pixels at 300 DPI)</p>
+                        <p><strong>Printer Compatible:</strong> TSC-310 Thermal Printer</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
